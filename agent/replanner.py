@@ -4,7 +4,10 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from loguru import logger
 from planner import Plan
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 
 class Response(BaseModel):
     """Represents a direct response to the user."""
