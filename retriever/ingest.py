@@ -3,7 +3,7 @@ import json
 from loguru import logger
 from connect import VectorDB
 
-logger.add("rag/ingest.log", rotation="10 MB", retention="7 days", level="DEBUG")
+# logger.add("rag/ingest.log", rotation="10 MB", retention="7 days", level="DEBUG")
 
 def ingest():
     logger.info("Starting ingestion process...")

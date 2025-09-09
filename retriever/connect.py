@@ -9,7 +9,7 @@ import os
 load_dotenv()
 
 class Config:
-    def __init__(self, config_file: str = "rag/config.yaml"):
+    def __init__(self, config_file: str = "retriever/config.yaml"):
         with open(config_file, "r", encoding="utf-8") as f:
             self.config = yaml.safe_load(f)
 
@@ -27,7 +27,7 @@ class Config:
 
 
 class VectorDB:
-    def __init__(self, config_file: str = "rag/config.yaml"):
+    def __init__(self, config_file: str = "retriever/config.yaml"):
         config = Config(config_file)
         self.host = config.milvus_host
         self.port = config.milvus_port

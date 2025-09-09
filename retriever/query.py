@@ -3,7 +3,7 @@ from connect import VectorDB
 import os
 from loguru import logger
 
-logger.add("rag/query.log", rotation="10 MB", retention="7 days", level="DEBUG")
+# logger.add("rag/query.log", rotation="10 MB", retention="7 days", level="DEBUG")
 
 @click.command()
 @click.option("--text", "-t", required=True)
