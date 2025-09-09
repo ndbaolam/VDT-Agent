@@ -1,0 +1,7 @@
+.env
+.vscode
+**/*/__pycache__
+__pycache__
+volumes
+**/*/*.log
+**/*/*mock.json
