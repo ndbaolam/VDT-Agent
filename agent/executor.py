@@ -5,6 +5,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain_core.runnables.config import RunnableConfig
 from langchain_core.messages import HumanMessage
+from interruptor import add_human_in_the_loop
 from dotenv import load_dotenv
 import os
 import uuid
@@ -19,18 +20,22 @@ async def init_executor(llm_model: str = "gpt-4o-mini", **kwargs):
         {
             "system-metrics-mcp": {
                 "command": "python",
-                "args": ["server.py"],
+                "args": ["mcp_server.py"],
                 "transport": "stdio",
             }
         }
     )
-    tools = await client.get_tools()
+    tools = await client.get_tools()    
     logger.info(f"Fetched {len(tools)} tools: {[t.name for t in tools]}")
     
+    execute_command_tool = next(t for t in tools if t.name == "execute_command")
+    other_tools = [t for t in tools if t.name != "execute_command"]
+    wrapped_execute_command = add_human_in_the_loop(execute_command_tool)
+
     memory = MemorySaver()
     agent = create_react_agent(
         model=llm,
-        tools=tools,
+        tools=other_tools + [wrapped_execute_command],
         checkpointer=memory,
         prompt="""
         You are a helpful assistant that uses the following tools to answer user queries.
