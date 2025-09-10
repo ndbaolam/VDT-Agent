@@ -7,7 +7,9 @@ from planner import init_planner
 from replanner import init_replanner, Response
 from executor import init_executor
 from langchain_core.messages import HumanMessage
+from langgraph.checkpoint.memory import InMemorySaver
 import asyncio
+import uuid
 
 # ----------------------------
 # State definition
@@ -78,30 +80,39 @@ def should_end(state: State):
 # ----------------------------
 # Workflow graph
 # ----------------------------
-workflow = StateGraph(State)
+graph = (
+    StateGraph(State)
+    .add_node("planner", plan_step)
+    .add_node("agent", execute_step)
+    .add_node("replan", replan_step)
 
-workflow.add_node("planner", plan_step)
-workflow.add_node("agent", execute_step)
-workflow.add_node("replan", replan_step)
+    .add_edge(START, "planner")
+    .add_edge("planner", "agent")
+    .add_edge("agent", "replan")
 
-workflow.add_edge(START, "planner")
-workflow.add_edge("planner", "agent")
-workflow.add_edge("agent", "replan")
-
-workflow.add_conditional_edges("replan", should_end, ["agent", END])
-
-app = workflow.compile()
+    .add_conditional_edges("replan", should_end, ["agent", END])
+    .compile(
+        checkpointer=InMemorySaver()
+    )
+)
 
 # ----------------------------
 # Main execution
 # ----------------------------
 async def main():
     await Agents.init()
-    config = {"recursion_limit": 5}
+    config = {
+        "recursion_limit": 5,
+        "thread_id": str(uuid.uuid4()),
+    }
     inputs = {
         "input": "How to deal with high memory usage on my computer? Don't run any shell commands."
     }
-    async for event in app.astream(inputs, config=config):
+    async for event in graph.astream(
+        inputs, 
+        config=config,
+        stream_mode="values"
+    ):
         for k, v in event.items():
             if k != "__end__":
                 print(v)
