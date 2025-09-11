@@ -8,11 +8,9 @@ from connect import VectorDB
 def ingest():
     logger.info("Starting ingestion process...")
         
-    db = VectorDB(        
-        config_file="config.yaml"
-    )
+    db = VectorDB()
 
-    collection_name = "kedb_collection"
+    collection_name = os.environ("COLLECTION_NAME")
 
     try:
         logger.info("Connecting to Milvus collection '{}'", collection_name)

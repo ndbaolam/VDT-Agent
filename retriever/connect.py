@@ -1,4 +1,3 @@
-import yaml
 from typing import List, Dict, Any, Optional
 from pymilvus import connections, Collection,  FieldSchema, CollectionSchema, DataType
 from openai import OpenAI
@@ -8,30 +7,15 @@ import os
 
 load_dotenv()
 
-class Config:
-    def __init__(self, config_file: str = "retriever/config.yaml"):
-        with open(config_file, "r", encoding="utf-8") as f:
-            self.config = yaml.safe_load(f)
-
-    @property
-    def milvus_host(self) -> str:
-        return self.config.get("MILVUS_HOST", "localhost")
-
-    @property
-    def milvus_port(self) -> int:
-        return int(self.config.get("MILVUS_PORT", 19530))
-
-    @property
-    def collection_name(self) -> str:
-        return self.config.get("COLLECTION_NAME", "kedb_collection")    
-
+MILVUS_HOST=os.environ("MILVUS_HOST", "localhost")
+MILVUS_PORT=os.environ("MILVUS_PORT", 19530)
+COLLECTION_NAME=os.environ("COLLECTION_NAME", "kedb_collection")
 
 class VectorDB:
-    def __init__(self, config_file: str = "retriever/config.yaml"):
-        config = Config(config_file)
-        self.host = config.milvus_host
-        self.port = config.milvus_port
-        self.default_collection_name = config.collection_name
+    def __init__(self):
+        self.host = MILVUS_HOST
+        self.port = MILVUS_PORT
+        self.default_collection_name = COLLECTION_NAME
 
         self.collection: Optional[Collection] = None
         
