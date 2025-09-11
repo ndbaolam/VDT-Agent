@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from loguru import logger
-from planner import Plan
+from .planner import Plan
 from dotenv import load_dotenv
 import os
 

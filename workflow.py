@@ -4,14 +4,13 @@ from typing import Annotated, List, Tuple
 from typing_extensions import TypedDict
 from langgraph.graph import StateGraph, END, START
 from loguru import logger
-from planner import init_planner
-from replanner import init_replanner, Response
-from executor import init_executor
+from agent.planner import init_planner
+from agent.replanner import init_replanner, Response
+from agent.executor import init_executor
 from langgraph.types import Command
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.memory import InMemorySaver
-from IPython.display import Image, display
 import asyncio
 import uuid
 import os
@@ -65,6 +64,10 @@ class Agents:
 # ----------------------------
 # Workflow step implementations
 # ----------------------------
+def classification(state: State):
+    input = state['input']
+    
+
 async def plan_step(state: State):
     response = await Agents.planner.ainvoke(
         {"messages": [HumanMessage(content=state["input"])]}
@@ -135,7 +138,8 @@ async def main():
         "recursion_limit": 10,
         "thread_id": thread_id,
     }
-    inputs = {"input": "Try to execute 'ls -la' on my home folder and explain each files."}
+    # inputs = {"input": "Try to execute 'ls -la' on my home folder and explain each files."}
+    inputs = {"input": "Hello."}
 
     logger.info({"event": "graph_execution_start", "input": inputs})
 
@@ -152,27 +156,31 @@ async def main():
 
     response = await graph.ainvoke(inputs, config=config, stream_mode="values")
 
-    interrupt = response.get("__interrupt__")[0]
-    if interrupt:
-        print("=" * 50)
-        print("🚨 INTERRUPT")
-        print("- Description:", interrupt.value.get("description"))
+    try:
+        interrupt = response.get("__interrupt__")[0]
+        
+        if interrupt:
+            print("=" * 50)
+            print("🚨 INTERRUPT")
+            print("- Description:", interrupt.value.get("description"))
 
-        args = interrupt.value.get("action_request", {})
-        if args:
-            print("- Action Request:")
-            for k, v in args.items():
-                print(f"    • {k}: {v}")
+            args = interrupt.value.get("action_request", {})
+            if args:
+                print("- Action Request:")
+                for k, v in args.items():
+                    print(f"    • {k}: {v}")
 
-        print("=" * 50)
+            print("=" * 50)
 
-        hil_result = input("👉 Allow action? (y/n): ").strip().lower()
+            hil_result = input("👉 Allow action? (y/n): ").strip().lower()
 
-        response = await graph.ainvoke(
-            Command(resume={"type": hil_result}),
-            config=config,
-            stream_mode="values"
-        )
+            response = await graph.ainvoke(
+                Command(resume={"type": hil_result}),
+                config=config,
+                stream_mode="values"
+            )
+    except Exception as e:
+        logger.error(e)
 
     print("\n" + "=" * 50)
     print("🤖 Agent Response")

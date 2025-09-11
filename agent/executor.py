@@ -5,7 +5,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain_core.runnables.config import RunnableConfig
 from langchain_core.messages import HumanMessage
-from interruptor import add_human_in_the_loop
+from .interruptor import add_human_in_the_loop
 from dotenv import load_dotenv
 import uuid
 import os
