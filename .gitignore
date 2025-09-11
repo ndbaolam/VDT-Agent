@@ -5,3 +5,4 @@ __pycache__
 volumes
 **/*/*.log
 **/*/*mock.json
+logs

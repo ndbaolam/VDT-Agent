@@ -7,13 +7,36 @@ from langchain_core.runnables.config import RunnableConfig
 from langchain_core.messages import HumanMessage
 from interruptor import add_human_in_the_loop
 from dotenv import load_dotenv
-import os
 import uuid
+import os
+import sys
+import json
 
 load_dotenv()
 
+# ---- Logging setup ----
+ENABLE_LOGGING = os.getenv("WORKFLOW_LOGGING", "1") == "1"
+log_folder = "logs"
+os.makedirs(log_folder, exist_ok=True)
+
+if ENABLE_LOGGING:
+    logger.remove() 
+    logger.add(
+        f"{log_folder}/executor.json",
+        rotation="10 MB",
+        retention="7 days",
+        level="INFO",
+        enqueue=True,
+        serialize=True,  
+        backtrace=True,
+        diagnose=True,
+    )
+else:
+    logger.remove()
+
+# ---- Executor ----
 async def init_executor(llm_model: str = "gpt-4o-mini", **kwargs):    
-    logger.info(f"Initializing agent with model: {llm_model}")
+    logger.info({"event": "init_executor_start", "model": llm_model})
     llm = ChatOpenAI(model=llm_model, **kwargs)
     
     client = MultiServerMCPClient(
@@ -26,7 +49,7 @@ async def init_executor(llm_model: str = "gpt-4o-mini", **kwargs):
         }
     )
     tools = await client.get_tools()    
-    logger.info(f"Fetched {len(tools)} tools: {[t.name for t in tools]}")
+    logger.info({"event": "tools_fetched", "tools": [t.name for t in tools]})
     
     execute_command_tool = next(t for t in tools if t.name == "execute_command")
     other_tools = [t for t in tools if t.name != "execute_command"]
@@ -43,9 +66,10 @@ async def init_executor(llm_model: str = "gpt-4o-mini", **kwargs):
         """,
     )
 
-    logger.success("Agent created successfully.")
+    logger.success({"event": "agent_created"})
     return agent
 
+# ---- Main ----
 if __name__ == "__main__":
     import asyncio
 
@@ -53,7 +77,7 @@ if __name__ == "__main__":
         agent = await init_executor()
         config = RunnableConfig({
             "recursion_limit": 5,
-            "thread_id": str(uuid.uuid4()), # type: ignore
+            "thread_id": str(uuid.uuid4()),  # type: ignore
         })
         
         response = await agent.ainvoke(
@@ -66,6 +90,10 @@ if __name__ == "__main__":
             },
             config=config
         )
+        logger.info({
+            "event": "agent_response",
+            "response": response['messages'][-1].content
+        })
         print("Agent response:", response["messages"][-1].content)
 
     asyncio.run(main())
