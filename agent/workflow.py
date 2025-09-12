@@ -4,12 +4,15 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import operator
 from typing import Annotated, List, Tuple
 from typing_extensions import TypedDict
-from langgraph.graph import StateGraph, END, START
+from langgraph.graph import StateGraph, END, START, add_messages, MessagesState
 from loguru import logger
 from langgraph.types import Command
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, AnyMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.memory import InMemorySaver
+from langchain.chat_models import init_chat_model
+from langchain_core.messages.utils import count_tokens_approximately
+from langmem.short_term import SummarizationNode, RunningSummary
 from agent.planner import init_planner
 from agent.replanner import init_replanner, Response
 from agent.executor import init_executor
@@ -42,10 +45,13 @@ else:
 # State definition
 # ----------------------------
 class State(TypedDict):
-    input: str
     plan: List[str]
     past_steps: Annotated[List[Tuple], operator.add]
     response: str
+
+    context: dict[str, RunningSummary] 
+    messages: Annotated[list[AnyMessage], add_messages]
+    summarized_messages: list[AnyMessage]
 
 # ----------------------------
 # Agents container
@@ -54,26 +60,32 @@ class Agents:
     executor = None
     planner = None
     replanner = None
+    summarization_model = None
 
     @classmethod
     async def init(cls, model: str = "gpt-4o-mini"):
         logger.info({"event": "agents_init_start", "model": model})
+
         cls.executor = await init_executor(model, temperature=0)
         cls.planner = await init_planner(model)
         cls.replanner = await init_replanner(model)
+        cls.summarization_model = init_chat_model(f"openai:{model}").bind(max_tokens=128)
+
         logger.success({"event": "agents_init_completed"})
 
 # ----------------------------
 # Workflow step implementations
 # ----------------------------
-def classification(state: State):
-    input = state['input']
-    
+summarization_node = SummarizationNode(
+    token_counter=count_tokens_approximately,
+    model=Agents.summarization_model,
+    max_tokens=256,
+    max_tokens_before_summary=256,
+    max_summary_tokens=128,
+)
 
 async def plan_step(state: State):
-    response = await Agents.planner.ainvoke(
-        {"messages": [HumanMessage(content=state["input"])]}
-    )
+    response = await Agents.planner.ainvoke(state["summarized_messages"])
     logger.info({"event": "plan_step_completed", "plan": response.steps})
     return {"plan": response.steps}
 
@@ -118,8 +130,10 @@ graph = (
     .add_node("planner", plan_step)
     .add_node("executor", execute_step)
     .add_node("replanner", replan_step)
+    .add_node("summarize", summarization_node)
 
-    .add_edge(START, "planner")
+    .add_edge(START, "summarize")
+    .add_edge("summarize", "planner")
     .add_edge("planner", "executor")
     .add_edge("executor", "replanner")
 
@@ -140,23 +154,15 @@ async def main():
         "recursion_limit": 10,
         "thread_id": thread_id,
     }
-    inputs = {"input": "Try to execute 'ls -la /home/baolam' and explain each files."}
-    # inputs = {"input": "Hello."}
+    message = HumanMessage(
+        content="Try to execute 'ls -la /home/baolam' and then explain each file"
+    )
 
-    logger.info({"event": "graph_execution_start", "input": inputs})
+    logger.info({"event": "graph_execution_start", "message": message})
 
-    # async for event in graph.astream(inputs, config=config, stream_mode="debug"):
-    #     print(30 * "-")
-    #     print(json.dumps(event, indent=4)) 
-
-    # print(15 * "***" + "graph_execution_resume_start" + 15 * "***")
-    # logger.info({"event": "graph_execution_resume_start"})
-    # print(graph.get_graph(config=config))
-    # async for event in graph.astream(Command(resume={"type": "y"}), config=config, stream_mode="debug"):
-    #     print(30 * "-")
-    #     print(json.dumps(event, indent=4)) 
-
-    response = await graph.ainvoke(inputs, config=config, stream_mode="values")
+    response = await graph.ainvoke({
+        "messages": [message]
+    }, config=config, stream_mode="values")
 
     try:
         interrupt = response.get("__interrupt__")[0]

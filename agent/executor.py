@@ -4,7 +4,6 @@ from loguru import logger
 from langchain_openai import ChatOpenAI
 from langchain_ollama import ChatOllama
 from langgraph.prebuilt import create_react_agent
-from langgraph.checkpoint.memory import MemorySaver
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain_core.runnables.config import RunnableConfig
 from langchain_core.messages import HumanMessage
@@ -80,11 +79,9 @@ async def init_executor(llm_model: str = "gpt-4o-mini", **kwargs):
     tools = other_tools + [wrapped_execute_command, wrapped_search]
     logger.info({"event": "tools_fetched", "tools": [t.name for t in tools]})
 
-    memory = MemorySaver()
     agent = create_react_agent(
         model=llm,
         tools=tools,
-        checkpointer=memory,
         prompt="""
 You are a helpful assistant that uses the following tools to answer user queries.
 Make sure to use the tools when needed, and provide clear and concise answers.

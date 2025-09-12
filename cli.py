@@ -2,6 +2,7 @@ import asyncio
 import uuid
 from loguru import logger
 from agent.workflow import graph, Agents
+from langchain_core.messages import HumanMessage
 from langgraph.types import Command
 from langchain_core.runnables import RunnableConfig
 from rich.console import Console
@@ -29,11 +30,15 @@ async def run_cli():
             console.print("[bold yellow]👋 Exiting agent CLI.[/bold yellow]")
             break
 
-        inputs = {"input": user_input}
+        message = HumanMessage(
+            content=user_input
+        )
 
         with Live(Spinner("dots", text="Agent is thinking...\n\n"), refresh_per_second=10):
             try:
-                response = await graph.ainvoke(inputs, config=config, stream_mode="values")
+                response = await graph.ainvoke({
+                    "messages": [message]
+                }, config=config, stream_mode="values")
             except Exception as e:
                 logger.error(e)
 
@@ -64,7 +69,7 @@ async def run_cli():
                     stream_mode="values"
                 )
         except Exception as e:
-            logger.log(e)
+            logger.exception(f"Exception occurred: {e}")
 
         # --- Agent response ---
         past_steps = response.get("past_steps") or []

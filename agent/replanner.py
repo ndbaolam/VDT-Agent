@@ -54,7 +54,7 @@ This plan should involve individual tasks that yield the correct answer.
 Do not add any superfluous steps. 
 
 Your objective was this:
-{input}
+{summarized_messages}
 
 Your original plan was this:
 {plan}
