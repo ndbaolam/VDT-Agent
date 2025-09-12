@@ -1,11 +1,12 @@
+import os, sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from typing import Union
 from pydantic import BaseModel, Field
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from loguru import logger
-from .planner import Plan
+from agent.planner import Plan
 from dotenv import load_dotenv
-import os
 
 # ---- Logging setup JSON ----
 ENABLE_LOGGING = os.getenv("WORKFLOW_LOGGING", "1") == "1"

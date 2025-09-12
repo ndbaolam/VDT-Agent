@@ -1,23 +1,27 @@
+import os, sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from loguru import logger
 from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama
 from langgraph.prebuilt import create_react_agent
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain_core.runnables.config import RunnableConfig
 from langchain_core.messages import HumanMessage
+from langchain_core.caches import InMemoryCache
 from langchain_community.tools import DuckDuckGoSearchRun
 
-from .interruptor import add_human_in_the_loop
+from agent.interruptor import add_human_in_the_loop
 from dotenv import load_dotenv
 import uuid
-import os
-import sys
 import json
 
 load_dotenv()
 
-# ---- Logging setup ----
 ENABLE_LOGGING = os.getenv("WORKFLOW_LOGGING", "1") == "1"
+MCP_URL = os.getenv("MCP_HOST", "http://localhost:8000/mcp")
+
+# ---- Logging setup ----
 log_folder = "logs"
 os.makedirs(log_folder, exist_ok=True)
 
@@ -39,17 +43,31 @@ else:
 # ---- Executor ----
 async def init_executor(llm_model: str = "gpt-4o-mini", **kwargs):    
     logger.info({"event": "init_executor_start", "model": llm_model})
-    llm = ChatOpenAI(model=llm_model, **kwargs)
-    
-    client = MultiServerMCPClient(
-        {
-            "system-metrics-mcp": {
-                "command": "python",
-                "args": ["mcp_server.py"],
-                "transport": "stdio",
+
+    llm = ChatOpenAI(
+        model=llm_model,
+        cache=InMemoryCache(),
+        **kwargs)
+
+    try: 
+        client = MultiServerMCPClient(
+            {
+                "system-metrics-mcp": {
+                    "command": "python",
+                    "args": ["mcp_server.py"],
+                    "transport": "stdio",
+                }
             }
-        }
-    )
+        )
+    except:
+        client = MultiServerMCPClient(
+            {
+                "system-metrics-mcp": {
+                    "url": MCP_URL,
+                    "transport": "streamable_http",
+                }
+            }
+        )
 
     tools = await client.get_tools()    
     search = DuckDuckGoSearchRun()        

@@ -1,7 +1,7 @@
 import asyncio
 import uuid
 from loguru import logger
-from workflow import graph, Agents
+from agent.workflow import graph, Agents
 from langgraph.types import Command
 from langchain_core.runnables import RunnableConfig
 from rich.console import Console
@@ -11,7 +11,6 @@ from rich.table import Table
 from rich.live import Live
 
 console = Console()
-
 
 async def run_cli():
     await Agents.init()
@@ -68,8 +67,17 @@ async def run_cli():
             logger.log(e)
 
         # --- Agent response ---
-        last_step = response.get("past_steps", [])[-1]
-        _, result = last_step
+        past_steps = response.get("past_steps") or []
+
+        if past_steps:
+            last_step = past_steps[-1]
+            if isinstance(last_step, (list, tuple)) and len(last_step) >= 2:
+                _, result = last_step
+            else:
+                result = str(last_step)
+        else:
+            result = "Something went wrong! Please try again."
+
         console.print(
             Panel(
                 result, 

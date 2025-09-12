@@ -1,20 +1,22 @@
 # workflow.py
+import os, sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import operator
 from typing import Annotated, List, Tuple
 from typing_extensions import TypedDict
 from langgraph.graph import StateGraph, END, START
 from loguru import logger
-from agent.planner import init_planner
-from agent.replanner import init_replanner, Response
-from agent.executor import init_executor
 from langgraph.types import Command
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.memory import InMemorySaver
+from agent.planner import init_planner
+from agent.replanner import init_replanner, Response
+from agent.executor import init_executor
 import asyncio
 import uuid
-import os
 import json
+
 
 # ---- Logging setup JSON ----
 ENABLE_LOGGING = os.getenv("WORKFLOW_LOGGING", "1") == "1"
@@ -138,8 +140,8 @@ async def main():
         "recursion_limit": 10,
         "thread_id": thread_id,
     }
-    # inputs = {"input": "Try to execute 'ls -la' on my home folder and explain each files."}
-    inputs = {"input": "Hello."}
+    inputs = {"input": "Try to execute 'ls -la /home/baolam' and explain each files."}
+    # inputs = {"input": "Hello."}
 
     logger.info({"event": "graph_execution_start", "input": inputs})
 
