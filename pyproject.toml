@@ -1,0 +1,32 @@
+[project]
+name = "vdt-agent"
+version = "0.1.0"
+description = "Agent with Retrieval, MCP tools"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "ddgs>=9.5.5",
+    "duckduckgo-search>=8.1.1",
+    "langchain>=0.3.27",
+    "langchain-community==0.3.29",
+    "langchain-core==0.3.75",
+    "langchain-mcp-adapters==0.1.9",
+    "langchain-ollama>=0.3.7",
+    "langchain-openai==0.3.32",
+    "langchain-text-splitters==0.3.11",
+    "langgraph==0.6.7",
+    "langgraph-checkpoint==2.1.1",
+    "langgraph-prebuilt==0.6.4",
+    "langgraph-sdk==0.2.6",
+    "langsmith==0.4.27",
+    "loguru==0.7.3",
+    "mcp==1.13.1",
+    "openai==1.107.0",
+    "openevals>=0.1.0",
+    "psutil>=7.0.0",
+    "pymilvus==2.6.1",
+    "python-dotenv==1.1.1",
+    "python-multipart==0.0.20",
+    "rich==14.1.0",
+    "uvicorn==0.35.0",
+]

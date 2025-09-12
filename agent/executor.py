@@ -5,6 +5,8 @@ from langgraph.checkpoint.memory import MemorySaver
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain_core.runnables.config import RunnableConfig
 from langchain_core.messages import HumanMessage
+from langchain_community.tools import DuckDuckGoSearchRun
+
 from .interruptor import add_human_in_the_loop
 from dotenv import load_dotenv
 import uuid
@@ -48,21 +50,29 @@ async def init_executor(llm_model: str = "gpt-4o-mini", **kwargs):
             }
         }
     )
+
     tools = await client.get_tools()    
-    logger.info({"event": "tools_fetched", "tools": [t.name for t in tools]})
-    
+    search = DuckDuckGoSearchRun()        
     execute_command_tool = next(t for t in tools if t.name == "execute_command")
     other_tools = [t for t in tools if t.name != "execute_command"]
+
     wrapped_execute_command = add_human_in_the_loop(execute_command_tool)
+    wrapped_search = add_human_in_the_loop(search)
+
+    tools = other_tools + [wrapped_execute_command, wrapped_search]
+    logger.info({"event": "tools_fetched", "tools": [t.name for t in tools]})
 
     memory = MemorySaver()
     agent = create_react_agent(
         model=llm,
-        tools=other_tools + [wrapped_execute_command],
+        tools=tools,
         checkpointer=memory,
         prompt="""
-        You are a helpful assistant that uses the following tools to answer user queries.
-        Make sure to use the tools when needed, and provide clear and concise answers.
+You are a helpful assistant that uses the following tools to answer user queries.
+Make sure to use the tools when needed, and provide clear and concise answers.
+
+Notes:
+**MCP** stands for **Model Context Protocol**
         """,
     )
 
