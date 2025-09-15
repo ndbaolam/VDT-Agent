@@ -1,7 +1,7 @@
 import asyncio
 import uuid
 from loguru import logger
-from agent.workflow import graph, Agents
+from agent.workflow_v2 import graph, Agents
 from langchain_core.messages import HumanMessage
 from langgraph.types import Command
 from langchain_core.runnables import RunnableConfig
@@ -13,12 +13,12 @@ from rich.live import Live
 
 console = Console()
 
-async def run_cli():
+async def run_cli():    
     await Agents.init()
     thread_id = str(uuid.uuid4())
 
     config: RunnableConfig = {
-        "recursion_limit": 40,
+        "recursion_limit": 20,
         "thread_id": thread_id,
     }
 
@@ -30,19 +30,18 @@ async def run_cli():
             console.print("[bold yellow]👋 Exiting agent CLI.[/bold yellow]")
             break
 
-        message = HumanMessage(
-            content=user_input
-        )
-
+        message = HumanMessage(content=user_input)
+        
         with Live(Spinner("dots", text="Agent is thinking...\n\n"), refresh_per_second=10):
             try:
-                response = await graph.ainvoke({
-                    "messages": [message]
-                }, config=config, stream_mode="values")
+                response = await graph.ainvoke(
+                    {"messages": [message]},
+                    config=config,
+                )
             except Exception as e:
-                logger.error(e)
-
-        # --- Handle interrupt safely ---
+                logger.error(f"Execution error: {e}")
+                continue
+        
         try:
             interrupts = response.get("__interrupt__") or []
             interrupt = interrupts[0] if interrupts else None
@@ -66,28 +65,22 @@ async def run_cli():
                 response = await graph.ainvoke(
                     Command(resume={"type": hil_result}),
                     config=config,
-                    stream_mode="values"
                 )
         except Exception as e:
-            logger.exception(f"Exception occurred: {e}")
-
-        # --- Agent response ---
-        past_steps = response.get("past_steps") or []
-
-        if past_steps:
-            last_step = past_steps[-1]
-            if isinstance(last_step, (list, tuple)) and len(last_step) >= 2:
-                _, result = last_step
-            else:
-                result = str(last_step)
+            logger.exception(f"Interrupt handling failed: {e}")
+        
+        messages = response.get("messages") or []
+        if messages:
+            last_message = messages[-1]
+            result = last_message.content if hasattr(last_message, "content") else str(last_message)
         else:
             result = "Something went wrong! Please try again."
 
         console.print(
             Panel(
-                result, 
-                title="[bold green]Agent Response[/]", 
-                style="bold blue"
+                result,
+                title="[bold green]Agent Response[/]",
+                style="bold blue",
             )
         )
 
