@@ -1,4 +1,6 @@
 import os, sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import platform
 import psutil
 import shlex
@@ -195,44 +197,6 @@ async def execute_command(command: str, cwd: Optional[str] = None, timeoutSec: i
         return [TextContent(type="text", text=f"[exec] Error: command timed out after {timeoutSec}s")]
     except Exception as e:
         return [TextContent(type="text", text=f"[exec] Error: {e}")]
-
-@mcp.tool()
-def query_kedb(text: str, collection: str, top_k: int = 3) -> List[Dict]:
-    """
-    Query the RAG knowledge base (Milvus) for relevant known errors.
-
-    Args:
-        text (str): The input text to query.
-        collection (str): The Milvus collection name.
-        top_k (int): Number of top similar results to return.
-
-    Returns:
-        List[Dict]: List of relevant known errors with fields like id, title, description, solution, root_cause, score.
-    """
-    try:                
-        from retriever import VectorDB
-
-        db = VectorDB()
-        db.connect(collection)
-
-        results = db.query(text=text, top_k=top_k, collection_name=collection)
-
-        formatted_results = []
-        for r in results:
-            entity = r.entity
-            formatted_results.append({
-                "id": entity.get("id"),
-                "title": entity.get("title"),
-                "description": entity.get("description"),
-                "solution": entity.get("solution"),
-                "root_cause": entity.get("root_cause"),
-                "score": r.score
-            })
-
-        db.disconnect()
-        return formatted_results
-    except Exception as e:
-        return [{"error": str(e)}]
 
 if __name__ == "__main__":
     mcp.run()

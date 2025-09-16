@@ -3,8 +3,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from typing_extensions import TypedDict
 from typing import Annotated
-from langchain_core.messages import HumanMessage, AnyMessage, SystemMessage, message_to_dict
-from langmem.short_term import SummarizationNode, RunningSummary
+from langchain_core.messages import HumanMessage, AnyMessage
+from langmem.short_term import SummarizationNode
 from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.memory import InMemorySaver
 from langchain.chat_models import init_chat_model
@@ -12,7 +12,6 @@ from langgraph.types import Command
 from langchain_core.messages.utils import count_tokens_approximately
 from langgraph.graph import (
     StateGraph, 
-    MessagesState,
     END, 
     START, 
     add_messages
@@ -36,9 +35,9 @@ class Agents:
 summarization_node = SummarizationNode(
     token_counter=count_tokens_approximately,
     model=Agents.summarization_model,
-    max_tokens=256,
-    max_tokens_before_summary=256,
-    max_summary_tokens=128,
+    max_tokens=1024,
+    max_tokens_before_summary=1024,
+    max_summary_tokens=256,
 )
 
 async def execute_step(state: State):

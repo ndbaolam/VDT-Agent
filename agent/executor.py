@@ -5,20 +5,17 @@ from langchain_openai import ChatOpenAI
 from langchain_ollama import ChatOllama
 from langgraph.prebuilt import create_react_agent
 from langgraph.types import Command
-from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain_core.runnables.config import RunnableConfig
 from langchain_core.messages import HumanMessage
 from langchain_core.caches import InMemoryCache
-from langchain_community.tools import DuckDuckGoSearchRun
 from langgraph.checkpoint.memory import InMemorySaver
-from agent.interruptor import add_human_in_the_loop
+from tools import init_tools
 from dotenv import load_dotenv
 import uuid
 
 load_dotenv()
 
 ENABLE_LOGGING = os.getenv("WORKFLOW_LOGGING", "1") == "1"
-MCP_URL = os.getenv("MCP_HOST", "http://localhost:8000/mcp")
 
 # ---- Logging setup ----
 log_folder = "logs"
@@ -55,38 +52,9 @@ async def init_executor(llm_model: str = "gpt-4o-mini", **kwargs):
             cache=InMemoryCache(),
             **kwargs
         )
-
-    try: 
-        client = MultiServerMCPClient(
-            {
-                "system-metrics-mcp": {
-                    "command": "python",
-                    "args": ["mcp_server.py"],
-                    "transport": "stdio",
-                }
-            }
-        )
-    except:
-        client = MultiServerMCPClient(
-            {
-                "system-metrics-mcp": {
-                    "url": MCP_URL,
-                    "transport": "streamable_http",
-                }
-            }
-        )
-
-    tools = await client.get_tools()    
-    search = DuckDuckGoSearchRun()        
-    execute_command_tool = next(t for t in tools if t.name == "execute_command")
-    other_tools = [t for t in tools if t.name != "execute_command"]
-
-    wrapped_execute_command = add_human_in_the_loop(execute_command_tool)
-    wrapped_search = add_human_in_the_loop(search)
-
-    tools = other_tools + [wrapped_execute_command, wrapped_search]
-    logger.info({"event": "tools_fetched", "tools": [t.name for t in tools]})
-
+    
+    tools = await init_tools()
+    
     agent = create_react_agent(
         model=llm,
         tools=tools,
