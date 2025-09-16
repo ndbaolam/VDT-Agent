@@ -3,30 +3,9 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from typing import Union
 from pydantic import BaseModel, Field
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
-from loguru import logger
+from langchain.chat_models import init_chat_model
 from agent.planner import Plan
 from dotenv import load_dotenv
-
-# ---- Logging setup JSON ----
-ENABLE_LOGGING = os.getenv("WORKFLOW_LOGGING", "1") == "1"
-log_folder = "logs"
-os.makedirs(log_folder, exist_ok=True)
-
-if ENABLE_LOGGING:
-    logger.remove()
-    logger.add(
-        f"{log_folder}/replanner.json",
-        rotation="10 MB",
-        retention="7 days",
-        level="INFO",
-        enqueue=True,
-        serialize=True,  # <-- JSON logging
-        backtrace=True,
-        diagnose=True,
-    )
-else:
-    logger.remove()
 
 load_dotenv()
 
@@ -46,8 +25,6 @@ class Act(BaseModel):
 
 
 async def init_replanner(model_name: str = "gpt-4o"):
-    logger.info({"event": "init_replanner_start", "model": model_name})
-
     prompt = ChatPromptTemplate.from_messages(
         ["""For the given objective, come up with a simple step by step plan. 
 This plan should involve individual tasks that yield the correct answer. 
@@ -68,10 +45,9 @@ Do not repeat already completed steps.
 """]
     )
 
-    llm = prompt | ChatOpenAI(
+    llm = prompt | init_chat_model(
         model=model_name,
         temperature=0,
     ).with_structured_output(Act)
 
-    logger.success({"event": "replanner_initialized"})
     return llm

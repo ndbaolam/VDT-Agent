@@ -1,34 +1,34 @@
+import sys
 from typing import List
 from pydantic import BaseModel, Field
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.messages import SystemMessage, HumanMessage
-from langchain_openai import ChatOpenAI
-from loguru import logger
+from langchain_core.messages import SystemMessage
+from langchain.chat_models import init_chat_model
 from dotenv import load_dotenv
+from loguru import logger
 import os
-
-# ---- Logging setup JSON ----
-ENABLE_LOGGING = os.getenv("WORKFLOW_LOGGING", "1") == "1"
-log_folder = "logs"
-os.makedirs(log_folder, exist_ok=True)
-
-if ENABLE_LOGGING:
-    logger.remove()
-    logger.add(
-        f"{log_folder}/planner.json",
-        rotation="10 MB",
-        retention="7 days",
-        level="INFO",
-        enqueue=True,
-        serialize=True,  # <-- JSON logging
-        backtrace=True,
-        diagnose=True,
-    )
-else:
-    logger.remove()
 
 load_dotenv()
 
+# ---- Logging config ----
+LOG_DIR = os.path.join(os.path.dirname(__file__), "..", "logs")
+os.makedirs(LOG_DIR, exist_ok=True)
+
+LOG_FILE = os.path.join(LOG_DIR, "all.log")
+
+logger.remove()
+logger.add(
+    LOG_FILE,
+    rotation="10 MB",
+    retention="10 days",
+    compression="zip",
+    enqueue=True,
+    backtrace=True,
+    diagnose=True,
+)
+
+
+# ---- Planner schema ----
 class Plan(BaseModel):
     """Represents a step-by-step plan for a given objective."""
     steps: List[str] = Field(
@@ -36,11 +36,11 @@ class Plan(BaseModel):
     )
 
 
+# ---- Planner init ----
 async def init_planner(model_name: str = "gpt-4o"):
     """
     Initialize a Planner with a ChatOpenAI model and predefined prompt.
     """
-    logger.info({"event": "init_planner_start", "model": model_name})
 
     # Prompt template
     prompt = ChatPromptTemplate.from_messages(
@@ -79,35 +79,10 @@ Guidelines:
         ]
     )
 
-    llm = prompt | ChatOpenAI(
+    llm = prompt | init_chat_model(
         model=model_name,
         temperature=0,
     ).with_structured_output(Plan)
 
-    logger.success({"event": "planner_initialized"})
+    logger.info(f"Planner initialized with model={model_name}")
     return llm
-
-
-if __name__ == "__main__":
-    import asyncio
-
-    async def main():
-        planner = await init_planner()
-        user_input = "How to deal with high memory usage on my computer? Don't run any shell commands."
-        logger.info({"event": "planner_invoke_start", "input": user_input})
-
-        response = await planner.ainvoke(
-            {
-                "messages": [
-                    HumanMessage(content=user_input)
-                ]
-            }
-        )
-
-        logger.info({
-            "event": "planner_invoke_completed",
-            "steps": response.steps
-        })
-        print("Planner response:", response.steps)
-    
-    asyncio.run(main())

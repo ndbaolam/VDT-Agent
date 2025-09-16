@@ -6,9 +6,29 @@ from langchain_core.documents import Document
 from loguru import logger
 from dotenv import load_dotenv
 import os
+import sys
 
 load_dotenv()
 
+# ---- Logging config ----
+LOG_DIR = os.path.join(os.path.dirname(__file__), "..", "logs")
+os.makedirs(LOG_DIR, exist_ok=True)
+
+LOG_FILE = os.path.join(LOG_DIR, "all.log")
+
+logger.remove()
+logger.add(
+    LOG_FILE,
+    rotation="10 MB",
+    retention="10 days",
+    compression="zip",
+    level="DEBUG",
+    enqueue=True,
+    backtrace=True,
+    diagnose=True,
+)
+
+# ---- Env config ----
 MILVUS_HOST = os.getenv("MILVUS_HOST", "localhost")
 MILVUS_PORT = os.getenv("MILVUS_PORT", 19530)
 COLLECTION_NAME = os.getenv("COLLECTION_NAME", "kedb_collection")
@@ -33,8 +53,10 @@ class VectorDB:
 
         self.vectorstore: Optional[Milvus] = None
 
-        logger.info("VectorDB initialized with host={}, port={}, default_collection={}", 
-                    self.host, self.port, self.default_collection_name)
+        logger.info(
+            "VectorDB initialized with host={}, port={}, default_collection={}", 
+            self.host, self.port, self.default_collection_name
+        )
 
     def connect(self, collection_name: Optional[str] = None):
         if not collection_name:
@@ -48,8 +70,10 @@ class VectorDB:
                 drop_old=False,
                 auto_id=True
             )
-            logger.info("Connected to Milvus at {}:{} with collection '{}'", 
-                        self.host, self.port, collection_name)
+            logger.info(
+                "Connected to Milvus at {}:{} with collection '{}'", 
+                self.host, self.port, collection_name
+            )
         except Exception as e:
             logger.exception("Failed to connect to Milvus: {}", e)
             raise
@@ -73,7 +97,9 @@ class VectorDB:
 
         try:
             self.vectorstore.add_documents(docs)
-            logger.success("Inserted {} records into '{}'", len(docs), self.default_collection_name)
+            logger.success(
+                "Inserted {} records into '{}'", len(docs), self.default_collection_name
+            )
         except Exception as e:
             logger.exception("Failed to insert documents: {}", e)
 
@@ -84,8 +110,12 @@ class VectorDB:
 
         try:
             results = self.vectorstore.similarity_search(text, k=top_k)
-            logger.info("Query executed on '{}': top_k={}", self.default_collection_name, top_k)
+            logger.info(
+                "Query executed on '{}': top_k={}", self.default_collection_name, top_k
+            )
             return results
         except Exception as e:
-            logger.exception("Failed to query collection '{}': {}", self.default_collection_name, e)
-            raise    
+            logger.exception(
+                "Failed to query collection '{}': {}", self.default_collection_name, e
+            )
+            raise
