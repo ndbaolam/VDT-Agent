@@ -238,6 +238,7 @@ wheels = [
 ]
 
 [[package]]
+<<<<<<< HEAD
 name = "decorator"
 version = "5.2.1"
 source = { registry = "https://pypi.org/simple" }
@@ -247,6 +248,8 @@ wheels = [
 ]
 
 [[package]]
+=======
+>>>>>>> 45b67f2 (update)
 name = "distro"
 version = "1.9.0"
 source = { registry = "https://pypi.org/simple" }
@@ -282,6 +285,7 @@ wheels = [
 ]
 
 [[package]]
+<<<<<<< HEAD
 name = "executing"
 version = "2.2.1"
 source = { registry = "https://pypi.org/simple" }
@@ -291,6 +295,8 @@ wheels = [
 ]
 
 [[package]]
+=======
+>>>>>>> 45b67f2 (update)
 name = "fastapi"
 version = "0.116.1"
 source = { registry = "https://pypi.org/simple" }
@@ -305,6 +311,7 @@ wheels = [
 ]
 
 [[package]]
+<<<<<<< HEAD
 name = "filelock"
 version = "3.19.1"
 source = { registry = "https://pypi.org/simple" }
@@ -314,6 +321,8 @@ wheels = [
 ]
 
 [[package]]
+=======
+>>>>>>> 45b67f2 (update)
 name = "frozenlist"
 version = "1.7.0"
 source = { registry = "https://pypi.org/simple" }
@@ -374,6 +383,7 @@ wheels = [
 ]
 
 [[package]]
+<<<<<<< HEAD
 name = "fsspec"
 version = "2025.9.0"
 source = { registry = "https://pypi.org/simple" }
@@ -383,6 +393,8 @@ wheels = [
 ]
 
 [[package]]
+=======
+>>>>>>> 45b67f2 (update)
 name = "greenlet"
 version = "3.2.4"
 source = { registry = "https://pypi.org/simple" }
@@ -453,6 +465,7 @@ wheels = [
 ]
 
 [[package]]
+<<<<<<< HEAD
 name = "hf-xet"
 version = "1.1.10"
 source = { registry = "https://pypi.org/simple" }
@@ -468,6 +481,8 @@ wheels = [
 ]
 
 [[package]]
+=======
+>>>>>>> 45b67f2 (update)
 name = "httpcore"
 version = "1.0.9"
 source = { registry = "https://pypi.org/simple" }
@@ -505,6 +520,7 @@ wheels = [
 ]
 
 [[package]]
+<<<<<<< HEAD
 name = "huggingface-hub"
 version = "0.35.0"
 source = { registry = "https://pypi.org/simple" }
@@ -524,6 +540,8 @@ wheels = [
 ]
 
 [[package]]
+=======
+>>>>>>> 45b67f2 (update)
 name = "idna"
 version = "3.10"
 source = { registry = "https://pypi.org/simple" }
@@ -533,6 +551,7 @@ wheels = [
 ]
 
 [[package]]
+<<<<<<< HEAD
 name = "ipython"
 version = "9.5.0"
 source = { registry = "https://pypi.org/simple" }
@@ -578,6 +597,8 @@ wheels = [
 ]
 
 [[package]]
+=======
+>>>>>>> 45b67f2 (update)
 name = "jiter"
 version = "0.10.0"
 source = { registry = "https://pypi.org/simple" }
@@ -747,6 +768,7 @@ wheels = [
 ]
 
 [[package]]
+<<<<<<< HEAD
 name = "langchain-huggingface"
 version = "0.3.1"
 source = { registry = "https://pypi.org/simple" }
@@ -761,6 +783,8 @@ wheels = [
 ]
 
 [[package]]
+=======
+>>>>>>> 45b67f2 (update)
 name = "langchain-mcp-adapters"
 version = "0.1.9"
 source = { registry = "https://pypi.org/simple" }
@@ -896,6 +920,7 @@ wheels = [
 ]
 
 [[package]]
+<<<<<<< HEAD
 name = "langgraph-supervisor"
 version = "0.0.29"
 source = { registry = "https://pypi.org/simple" }
@@ -909,6 +934,8 @@ wheels = [
 ]
 
 [[package]]
+=======
+>>>>>>> 45b67f2 (update)
 name = "langmem"
 version = "0.0.29"
 source = { registry = "https://pypi.org/simple" }
@@ -1045,6 +1072,7 @@ wheels = [
 ]
 
 [[package]]
+<<<<<<< HEAD
 name = "matplotlib-inline"
 version = "0.1.7"
 source = { registry = "https://pypi.org/simple" }
@@ -1057,6 +1085,8 @@ wheels = [
 ]
 
 [[package]]
+=======
+>>>>>>> 45b67f2 (update)
 name = "mcp"
 version = "1.13.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1406,6 +1436,7 @@ wheels = [
 ]
 
 [[package]]
+<<<<<<< HEAD
 name = "parso"
 version = "0.8.5"
 source = { registry = "https://pypi.org/simple" }
@@ -1427,6 +1458,8 @@ wheels = [
 ]
 
 [[package]]
+=======
+>>>>>>> 45b67f2 (update)
 name = "primp"
 version = "0.15.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1443,6 +1476,7 @@ wheels = [
 ]
 
 [[package]]
+<<<<<<< HEAD
 name = "prompt-toolkit"
 version = "3.0.52"
 source = { registry = "https://pypi.org/simple" }
@@ -1455,6 +1489,8 @@ wheels = [
 ]
 
 [[package]]
+=======
+>>>>>>> 45b67f2 (update)
 name = "propcache"
 version = "0.3.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1541,6 +1577,7 @@ wheels = [
 ]
 
 [[package]]
+<<<<<<< HEAD
 name = "ptyprocess"
 version = "0.7.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1559,6 +1596,8 @@ wheels = [
 ]
 
 [[package]]
+=======
+>>>>>>> 45b67f2 (update)
 name = "pydantic"
 version = "2.11.7"
 source = { registry = "https://pypi.org/simple" }
@@ -2000,6 +2039,7 @@ wheels = [
 ]
 
 [[package]]
+<<<<<<< HEAD
 name = "stack-data"
 version = "0.6.3"
 source = { registry = "https://pypi.org/simple" }
@@ -2014,6 +2054,8 @@ wheels = [
 ]
 
 [[package]]
+=======
+>>>>>>> 45b67f2 (update)
 name = "starlette"
 version = "0.47.3"
 source = { registry = "https://pypi.org/simple" }
@@ -2060,6 +2102,7 @@ wheels = [
 ]
 
 [[package]]
+<<<<<<< HEAD
 name = "tokenizers"
 version = "0.22.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2085,6 +2128,8 @@ wheels = [
 ]
 
 [[package]]
+=======
+>>>>>>> 45b67f2 (update)
 name = "tqdm"
 version = "4.67.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2097,6 +2142,7 @@ wheels = [
 ]
 
 [[package]]
+<<<<<<< HEAD
 name = "traitlets"
 version = "5.14.3"
 source = { registry = "https://pypi.org/simple" }
@@ -2106,6 +2152,8 @@ wheels = [
 ]
 
 [[package]]
+=======
+>>>>>>> 45b67f2 (update)
 name = "trustcall"
 version = "0.0.39"
 source = { registry = "https://pypi.org/simple" }
@@ -2259,11 +2307,17 @@ dependencies = [
     { name = "ddgs" },
     { name = "duckduckgo-search" },
     { name = "fastapi" },
+<<<<<<< HEAD
     { name = "ipython" },
     { name = "langchain" },
     { name = "langchain-community" },
     { name = "langchain-core" },
     { name = "langchain-huggingface" },
+=======
+    { name = "langchain" },
+    { name = "langchain-community" },
+    { name = "langchain-core" },
+>>>>>>> 45b67f2 (update)
     { name = "langchain-mcp-adapters" },
     { name = "langchain-milvus" },
     { name = "langchain-ollama" },
@@ -2274,7 +2328,10 @@ dependencies = [
     { name = "langgraph-cli" },
     { name = "langgraph-prebuilt" },
     { name = "langgraph-sdk" },
+<<<<<<< HEAD
     { name = "langgraph-supervisor" },
+=======
+>>>>>>> 45b67f2 (update)
     { name = "langmem" },
     { name = "langsmith" },
     { name = "loguru" },
@@ -2294,11 +2351,17 @@ requires-dist = [
     { name = "ddgs", specifier = ">=9.5.5" },
     { name = "duckduckgo-search", specifier = ">=8.1.1" },
     { name = "fastapi", specifier = ">=0.116.1" },
+<<<<<<< HEAD
     { name = "ipython", specifier = ">=9.5.0" },
     { name = "langchain", specifier = ">=0.3.27" },
     { name = "langchain-community", specifier = "==0.3.29" },
     { name = "langchain-core", specifier = "==0.3.75" },
     { name = "langchain-huggingface", specifier = ">=0.3.1" },
+=======
+    { name = "langchain", specifier = ">=0.3.27" },
+    { name = "langchain-community", specifier = "==0.3.29" },
+    { name = "langchain-core", specifier = "==0.3.75" },
+>>>>>>> 45b67f2 (update)
     { name = "langchain-mcp-adapters", specifier = "==0.1.9" },
     { name = "langchain-milvus", specifier = ">=0.2.1" },
     { name = "langchain-ollama", specifier = ">=0.3.7" },
@@ -2309,7 +2372,10 @@ requires-dist = [
     { name = "langgraph-cli", specifier = ">=0.4.2" },
     { name = "langgraph-prebuilt", specifier = "==0.6.4" },
     { name = "langgraph-sdk", specifier = "==0.2.6" },
+<<<<<<< HEAD
     { name = "langgraph-supervisor", specifier = ">=0.0.29" },
+=======
+>>>>>>> 45b67f2 (update)
     { name = "langmem", specifier = ">=0.0.29" },
     { name = "langsmith", specifier = "==0.4.27" },
     { name = "loguru", specifier = "==0.7.3" },
@@ -2325,6 +2391,7 @@ requires-dist = [
 ]
 
 [[package]]
+<<<<<<< HEAD
 name = "wcwidth"
 version = "0.2.13"
 source = { registry = "https://pypi.org/simple" }
@@ -2334,6 +2401,8 @@ wheels = [
 ]
 
 [[package]]
+=======
+>>>>>>> 45b67f2 (update)
 name = "win32-setctime"
 version = "1.2.0"
 source = { registry = "https://pypi.org/simple" }
