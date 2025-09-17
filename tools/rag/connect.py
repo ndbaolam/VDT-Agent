@@ -11,7 +11,7 @@ import sys
 load_dotenv()
 
 # ---- Logging config ----
-LOG_DIR = os.path.join(os.path.dirname(__file__), "..", "logs")
+LOG_DIR = os.path.join(os.path.dirname(__file__), "../..", "logs")
 os.makedirs(LOG_DIR, exist_ok=True)
 
 LOG_FILE = os.path.join(LOG_DIR, "all.log")

@@ -6,4 +6,3 @@ volumes
 **/*/*.log
 **/*/*mock.json
 logs
-uv.lock
