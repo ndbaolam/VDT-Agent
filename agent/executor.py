@@ -29,7 +29,7 @@ logger.add(
 
 # ---- Executor ----
 async def init_executor(llm_model: str = "openai:gpt-4o-mini", **kwargs):    
-    llm = init_chat_model(llm_model, temperature=0)
+    llm = init_chat_model(llm_model, **kwargs)
     
     tools = await init_tools()
     
