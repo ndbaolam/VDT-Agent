@@ -3,8 +3,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from loguru import logger
 from langgraph.prebuilt import create_react_agent
+from langchain_core.language_models import BaseChatModel
 from langgraph.checkpoint.memory import InMemorySaver
-from langchain.chat_models import init_chat_model
 from tools import init_tools
 from dotenv import load_dotenv
 
@@ -28,13 +28,11 @@ logger.add(
 )
 
 # ---- Executor ----
-async def init_executor(llm_model: str = "openai:gpt-4o-mini", **kwargs):    
-    llm = init_chat_model(llm_model, **kwargs)
-    
+async def init_executor(model: BaseChatModel):        
     tools = await init_tools()
     
     agent = create_react_agent(
-        model=llm,
+        model=model,
         tools=tools,
         prompt="""
 You are a helpful assistant that uses the following tools to answer user queries.
@@ -43,8 +41,28 @@ Make sure to use the tools when needed, and provide clear and concise answers.
 Notes:
 **MCP** stands for **Model Context Protocol**
         """,
-        checkpointer=InMemorySaver()
     )
 
-    logger.info(f"Executor initialized with model={llm_model}")
+    logger.info(f"Executor initialized with model={model.get_name()}")
     return agent
+
+if __name__ == "__main__":
+    import asyncio
+    from langchain.chat_models import init_chat_model
+
+    async def main():
+        model = init_chat_model("openai:gpt-4.1-mini")
+        executor = await init_executor(model)
+        response = executor.invoke({
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "Show me all tools that you're provided"
+                }
+            ]
+        })
+
+        print(response['messages'][-1].content)
+
+    
+    asyncio.run(main())

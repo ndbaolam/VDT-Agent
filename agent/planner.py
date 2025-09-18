@@ -3,7 +3,7 @@ from typing import List
 from pydantic import BaseModel, Field
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import SystemMessage
-from langchain.chat_models import init_chat_model
+from langchain_core.language_models import BaseChatModel
 from dotenv import load_dotenv
 from loguru import logger
 import os
@@ -37,7 +37,7 @@ class Plan(BaseModel):
 
 
 # ---- Planner init ----
-async def init_planner(model_name: str = "gpt-4o"):
+async def init_planner(model: BaseChatModel):
     """
     Initialize a Planner with a ChatOpenAI model and predefined prompt.
     """
@@ -79,10 +79,7 @@ Guidelines:
         ]
     )
 
-    llm = prompt | init_chat_model(
-        model=model_name,
-        temperature=0,
-    ).with_structured_output(Plan)
+    llm = prompt | model.with_structured_output(Plan)
 
-    logger.info(f"Planner initialized with model={model_name}")
+    logger.info(f"Planner initialized with model={model.get_name()}")
     return llm
