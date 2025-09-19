@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Literal
 from pydantic import BaseModel
 
 class ChatRequest(BaseModel):
@@ -19,7 +19,7 @@ class InterruptResponse(BaseModel):
 
 class InterruptResolution(BaseModel):
     interrupt_id: str
-    resolution: str  # "y" or "n"
+    resolution: Literal['y', 'n']  # "y" or "n"
     thread_id: str
 
 class ThreadStatus(BaseModel):

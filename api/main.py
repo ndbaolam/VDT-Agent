@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 
 from api.config import Config, setup_logging
@@ -13,6 +14,15 @@ app = FastAPI(
     title="LangGraph Agent API",
     description="Simple API for LangGraph agents",
     version="1.0.0"
+)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Global service
