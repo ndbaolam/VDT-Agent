@@ -1,7 +1,7 @@
 import asyncio
 import uuid
 from loguru import logger
-from agent.workflow_v2 import graph, Agents
+from agent.workflow import build_graph
 from langchain_core.messages import HumanMessage
 from langgraph.types import Command
 from langchain_core.runnables import RunnableConfig
@@ -14,7 +14,8 @@ from rich.live import Live
 console = Console()
 
 async def run_cli():    
-    await Agents.init()
+    graph = build_graph()
+
     thread_id = str(uuid.uuid4())
 
     config: RunnableConfig = {
