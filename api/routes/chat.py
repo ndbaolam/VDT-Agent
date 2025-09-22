@@ -136,4 +136,86 @@ def create_router(agent_service: AgentService) -> APIRouter:
             raise HTTPException(status_code=404, detail="Thread not found")
         return {"message": f"Thread {thread_id} deleted successfully"}
 
+    @router.get("/threads/{thread_id}/title")
+    async def generate_chat_title(thread_id: str):
+        """Generate a title for the chat based on thread messages"""
+        try:
+            logger.info(f"[generate_chat_title] Generating title for thread: {thread_id}")
+            
+            # Get thread messages to generate title
+            thread_status = agent_service.get_thread_status(thread_id)
+            if not thread_status:
+                raise HTTPException(status_code=404, detail="Thread not found")
+            
+            # Generate title using the agent service
+            title = await agent_service.generate_chat_title(thread_id)
+            
+            if not title:
+                # Fallback title if generation fails
+                title = f"Chat {thread_id[:8]}"
+            
+            logger.info(f"[generate_chat_title] Generated title: {title}")
+            
+            return {
+                "thread_id": thread_id,
+                "title": title,
+                "status": "success"
+            }
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"[generate_chat_title] Error generating title for {thread_id}: {str(e)}")
+            # Return fallback title instead of error
+            return {
+                "thread_id": thread_id,
+                "title": f"Chat {thread_id[:8]}",
+                "status": "fallback"
+            }
+
+    @router.get("/chat-history")
+    async def get_chat_history():
+        """Get all chat history with titles"""
+        try:
+            logger.info("[get_chat_history] Fetching chat history")
+            
+            # Get all threads
+            threads = agent_service.get_all_threads()
+            
+            chat_history = []
+            for thread_id in threads:
+                try:
+                    # Get thread status and messages
+                    thread_status = agent_service.get_thread_status(thread_id)
+                    if thread_status:
+                        # Try to get existing title or generate new one
+                        title = await agent_service.generate_chat_title(thread_id)
+                        if not title:
+                            title = f"Chat {thread_id[:8]}"
+                        
+                        chat_history.append({
+                            "thread_id": thread_id,
+                            "title": title,
+                            "last_updated": thread_status.get("last_updated"),
+                            "message_count": len(thread_status.get("messages", []))
+                        })
+                except Exception as e:
+                    logger.warning(f"[get_chat_history] Error processing thread {thread_id}: {str(e)}")
+                    continue
+            
+            # Sort by last updated (most recent first)
+            chat_history.sort(key=lambda x: x.get("last_updated", ""), reverse=True)
+            
+            logger.info(f"[get_chat_history] Retrieved {len(chat_history)} chat histories")
+            
+            return {
+                "chat_history": chat_history,
+                "total_count": len(chat_history)
+            }
+            
+        except Exception as e:
+            logger.error(f"[get_chat_history] Error fetching chat history: {str(e)}")
+            raise HTTPException(status_code=500, detail=str(e))
+
+
     return router
