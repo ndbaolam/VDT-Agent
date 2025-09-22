@@ -233,3 +233,59 @@ class AgentService:
             deleted = True
         
         return deleted
+    
+    async def generate_chat_title(self, thread_id: str) -> str:
+        """
+        Generate a title for a chat thread based on its messages using OpenAI API
+        """
+        try:
+            # Get the thread and its messages
+            thread_status = self.get_thread_status(thread_id)
+            if not thread_status or not thread_status.get("messages"):
+                return f"Chat {thread_id[:8]}"
+                
+            messages = thread_status["messages"]
+            
+            # Get the first few user messages to generate a meaningful title
+            user_messages = []
+            for msg in messages[:10]:  # Look at first 10 messages
+                if msg.get("type") == "human" or msg.get("role") == "user":
+                    content = msg.get("content") or msg.get("text", "")
+                    if content and len(content.strip()) > 0:
+                        user_messages.append(content.strip())
+                        
+            if not user_messages:
+                return f"Chat {thread_id[:8]}"
+                
+            # Combine first few messages for title generation
+            combined_text = " ".join(user_messages[:3])[:500]  # Limit to 500 chars
+            
+            # Use OpenAI to generate the title
+            client = openai.AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+            
+            response = await client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {
+                        "role": "user", 
+                        "content": f"Generate a short, descriptive title (maximum 50 characters) for a chat that starts with: {combined_text}\n\nRespond with only the title, nothing else."
+                    }
+                ],
+                max_tokens=20,
+                temperature=0.7
+            )
+            
+            title = response.choices[0].message.content.strip()
+            
+            # Clean the title
+            title = title.replace('"', '').replace("'", "")
+            
+            # Ensure title is not too long
+            if len(title) > 50:
+                title = title[:47] + "..."
+                
+            return title or f"Chat {thread_id[:8]}"
+            
+        except Exception as e:
+            logger.error(f"Error generating chat title for thread {thread_id}: {str(e)}")
+            return f"Chat {thread_id[:8]}"
