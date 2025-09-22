@@ -2,7 +2,7 @@
 <template>
   <div class="flex h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
     <!-- Sidebar -->
-    <ChatSidebar 
+    <ChatSidebar
       :chat-history="chatHistory"
       :current-thread-id="currentThreadId"
       :is-loading="sidebarLoading"
@@ -11,11 +11,11 @@
       @delete-chat="deleteChat"
       @refresh-history="loadChatHistory"
     />
-    
+
     <!-- Main Chat Area -->
     <main class="flex flex-col flex-1 relative">
       <!-- Chat Messages Area with proper scrolling -->
-      <div class="flex-1 overflow-y-auto overflow-x-hidden" style="padding-bottom: 120px;">
+      <div class="flex-1 overflow-y-auto overflow-x-hidden" style="padding-bottom: 120px">
         <ChatMessages
           :messages="messages"
           :is-loading="isLoading"
@@ -24,13 +24,9 @@
           class="min-h-full"
         />
       </div>
-      
+
       <!-- Floating Input Area -->
-      <ChatInput 
-        v-model:input="input" 
-        :is-loading="isLoading" 
-        @send-message="sendMessage" 
-      />
+      <ChatInput v-model:input="input" :is-loading="isLoading" @send-message="sendMessage" />
     </main>
   </div>
 </template>
@@ -113,27 +109,29 @@ async function loadChatHistory() {
 async function loadChat(threadId: string) {
   try {
     isLoading.value = true
-    
+
     // Get thread status and messages
     const response = await axios.get(`${API_BASE_URL}/threads/${threadId}`)
     const threadData = response.data
-    
+
     // Set current thread
     currentThreadId.value = threadId
-    
+
     // Convert thread messages to chat messages format
-    messages.value = threadData.messages?.map((msg: any) => ({
-      role: msg.role || (msg.type === 'human' ? 'user' : 'bot'),
-      content: msg.content || msg.text || '',
-      ...msg
-    })) || []
-    
+    messages.value =
+      threadData.messages?.map((msg: any) => ({
+        role: msg.role || (msg.type === 'human' ? 'user' : 'bot'),
+        content: msg.content || msg.text || '',
+        ...msg,
+      })) || []
   } catch (error) {
     console.error('Error loading chat:', error)
-    messages.value = [{
-      role: 'bot',
-      content: 'Error loading chat history. Please try again.'
-    }]
+    messages.value = [
+      {
+        role: 'bot',
+        content: 'Error loading chat history. Please try again.',
+      },
+    ]
   } finally {
     isLoading.value = false
   }
@@ -150,10 +148,10 @@ function startNewChat() {
 async function deleteChat(threadId: string) {
   try {
     await axios.delete(`${API_BASE_URL}/threads/${threadId}`)
-    
+
     // Remove from chat history
-    chatHistory.value = chatHistory.value.filter(chat => chat.thread_id !== threadId)
-    
+    chatHistory.value = chatHistory.value.filter((chat) => chat.thread_id !== threadId)
+
     // If it's the current chat, start a new one
     if (currentThreadId.value === threadId) {
       startNewChat()
@@ -205,10 +203,9 @@ async function sendMessage() {
     }
 
     // Refresh chat history if this is a new thread
-    if (data.thread_id && !chatHistory.value.find(chat => chat.thread_id === data.thread_id)) {
+    if (data.thread_id && !chatHistory.value.find((chat) => chat.thread_id === data.thread_id)) {
       await loadChatHistory()
     }
-
   } catch (e: any) {
     messages.value.push({
       role: 'bot',

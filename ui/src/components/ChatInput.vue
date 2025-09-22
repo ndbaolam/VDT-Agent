@@ -16,7 +16,7 @@
         rows="1"
         ref="textareaRef"
       ></textarea>
-      
+
       <!-- Action Buttons -->
       <div class="flex items-center gap-2">
         <!-- Upload Button -->
@@ -26,17 +26,17 @@
           <input type="file" accept=".txt" class="hidden" @change="handleFileUpload" />
           📎
         </label>
-        
+
         <!-- Send Button -->
         <SendButton :is-loading="isLoading" :disabled="!input.trim() || isLoading" />
       </div>
     </form>
-    
+
     <!-- Status Indicator (positioned above the input) -->
     <div class="absolute -top-12 left-1/2 transform -translate-x-1/2">
       <StatusIndicator :is-loading="isLoading" />
     </div>
-    
+
     <!-- Custom Alert (positioned above the input) -->
     <div class="absolute -top-20 left-1/2 transform -translate-x-1/2 w-full max-w-sm">
       <AlertBox
@@ -90,14 +90,14 @@ function handleKeyDown(e: KeyboardEvent) {
 function handleFileUpload(event: Event) {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
-  
+
   if (!file) return
-  
+
   if (file.type !== 'text/plain') {
     alertMessage.value = '❌ Only .txt files are supported.'
     return
   }
-  
+
   const reader = new FileReader()
   reader.onload = () => {
     emit('update:input', reader.result as string)
