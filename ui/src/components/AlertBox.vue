@@ -11,36 +11,31 @@
       </div>
 
       <!-- Close -->
-      <button
-        class="text-red-400 hover:text-red-600 transition"
-        @click="close"
-      >
-        ✖
-      </button>
+      <button class="text-red-400 hover:text-red-600 transition" @click="close">✖</button>
     </div>
   </transition>
 </template>
 
 <script setup lang="ts">
-import { ref, watchEffect } from "vue";
+import { ref, watchEffect } from 'vue'
 
 const props = defineProps<{
-  message: string;
-  duration?: number; // ms, auto close
-}>();
+  message: string
+  duration?: number // ms, auto close
+}>()
 
-const visible = ref(true);
+const visible = ref(true)
 
 function close() {
-  visible.value = false;
+  visible.value = false
 }
 
 watchEffect(() => {
   if (props.duration && visible.value) {
-    const timer = setTimeout(() => (visible.value = false), props.duration);
-    return () => clearTimeout(timer);
+    const timer = setTimeout(() => (visible.value = false), props.duration)
+    return () => clearTimeout(timer)
   }
-});
+})
 </script>
 
 <style scoped>

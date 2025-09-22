@@ -4,8 +4,12 @@
       <h2 class="text-lg font-semibold">Chat History</h2>
     </header>
     <ul class="p-4 space-y-2">
-      <li v-for="(history, index) in chatHistory" :key="index" @click="loadChat(index)"
-          class="p-3 rounded-lg cursor-pointer hover:bg-blue-100">
+      <li
+        v-for="(history, index) in chatHistory"
+        :key="index"
+        @click="loadChat(index)"
+        class="p-3 rounded-lg cursor-pointer hover:bg-blue-100"
+      >
         <span class="text-sm font-medium text-gray-700">Chat {{ index + 1 }}</span>
       </li>
     </ul>
@@ -18,8 +22,8 @@ import { defineProps, defineEmits, type PropType } from 'vue'
 const props = defineProps({
   chatHistory: {
     type: Array as PropType<Array<Array<{ role: string; content: string }>>>,
-    required: true
-  }
+    required: true,
+  },
 })
 
 const emit = defineEmits(['loadChat'])

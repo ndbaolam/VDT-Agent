@@ -1,0 +1,49 @@
+name: Format Code
+
+on:
+  push:
+    paths:
+      - "ui/**"
+    branches:
+      - main
+      - dev
+  pull_request:
+    paths:
+      - "ui/**"
+
+permissions:
+  contents: write 
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ui
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ACTIONS_PAT }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run formatter
+        run: npm run format
+
+      - name: Commit formatted code
+        run: |
+          git config --global user.name "ndbaolam"
+          git config --global user.email "baolam782004@gmail.com"
+          git add .
+          git diff --cached --quiet || git commit -m "chore: auto format code"
+          git push

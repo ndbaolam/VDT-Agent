@@ -23,12 +23,7 @@
           <label
             class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition cursor-pointer shadow"
           >
-            <input
-              type="file"
-              accept=".txt"
-              class="hidden"
-              @change="handleFileUpload"
-            />
+            <input type="file" accept=".txt" class="hidden" @change="handleFileUpload" />
             📎
           </label>
 
@@ -52,68 +47,68 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, defineProps, defineEmits } from "vue";
-import SendButton from "@/components/SendButton.vue";
-import StatusIndicator from "@/components/StatusIndicator.vue";
-import AlertBox from "@/components/AlertBox.vue";
+import { ref, onMounted, watch, defineProps, defineEmits } from 'vue'
+import SendButton from '@/components/SendButton.vue'
+import StatusIndicator from '@/components/StatusIndicator.vue'
+import AlertBox from '@/components/AlertBox.vue'
 
 const props = defineProps<{
-  input: string;
-  isLoading: boolean;
-}>();
+  input: string
+  isLoading: boolean
+}>()
 
 const emit = defineEmits<{
-  "update:input": [value: string];
-  "send-message": [];
-}>();
+  'update:input': [value: string]
+  'send-message': []
+}>()
 
-const textareaRef = ref<HTMLTextAreaElement | null>(null);
-const alertMessage = ref("");
+const textareaRef = ref<HTMLTextAreaElement | null>(null)
+const alertMessage = ref('')
 
 function updateInput(event: Event) {
-  const target = event.target as HTMLTextAreaElement;
-  emit("update:input", target.value);
+  const target = event.target as HTMLTextAreaElement
+  emit('update:input', target.value)
 }
 
 function resizeTextarea() {
   if (textareaRef.value) {
-    textareaRef.value.style.height = "auto";
-    textareaRef.value.style.height = `${Math.min(
-      textareaRef.value.scrollHeight,
-      160
-    )}px`;
+    textareaRef.value.style.height = 'auto'
+    textareaRef.value.style.height = `${Math.min(textareaRef.value.scrollHeight, 160)}px`
   }
 }
 
 function handleKeyDown(e: KeyboardEvent) {
-  if (e.key === "Enter" && !e.shiftKey && !props.isLoading) {
-    e.preventDefault();
-    emit("send-message");
+  if (e.key === 'Enter' && !e.shiftKey && !props.isLoading) {
+    e.preventDefault()
+    emit('send-message')
   }
 }
 
 function handleFileUpload(event: Event) {
-  const target = event.target as HTMLInputElement;
-  const file = target.files?.[0];
-  if (!file) return;
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
 
-  if (file.type !== "text/plain") {
-    alertMessage.value = "❌ Only .txt files are supported.";
-    return;
+  if (file.type !== 'text/plain') {
+    alertMessage.value = '❌ Only .txt files are supported.'
+    return
   }
 
-  const reader = new FileReader();
+  const reader = new FileReader()
   reader.onload = () => {
-    emit("update:input", reader.result as string);
-  };
-  reader.readAsText(file);
+    emit('update:input', reader.result as string)
+  }
+  reader.readAsText(file)
 }
 
 onMounted(() => {
-  resizeTextarea();
-});
+  resizeTextarea()
+})
 
-watch(() => props.input, () => {
-  resizeTextarea();
-});
+watch(
+  () => props.input,
+  () => {
+    resizeTextarea()
+  },
+)
 </script>
