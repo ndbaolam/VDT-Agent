@@ -10,8 +10,12 @@
       <MessageBubble
         v-for="(msg, idx) in messages"
         :key="idx"
-        :message="msg"
+        :message="{
+          ...msg,
+          renderedContent: renderMarkdown(msg.content)
+        }"
         @render-markdown="(text) => $emit('render-markdown', text)"
+        @approve-interrupt="(interruptId, threadId, approved) => $emit('approve-interrupt', interruptId, threadId, approved)"
       />
       
       <!-- Loading Indicator -->
@@ -25,10 +29,16 @@ import { defineProps, defineEmits } from "vue";
 import WelcomeScreen from "./WelcomeScreen.vue";
 import MessageBubble from "./MessageBubble.vue";
 import LoadingIndicator from "./LoadingIndicator.vue";
+import { marked } from "marked";
 
 interface Message {
   role: string;
   content: string;
+  interrupt_id?: string;
+  interrupt_description?: string;
+  interrupt_action?: any;
+  requires_approval?: boolean;
+  thread_id?: string;
 }
 
 defineProps<{
@@ -38,7 +48,12 @@ defineProps<{
 
 defineEmits<{
   'render-markdown': [text: string];
+  'approve-interrupt': [interruptId: string, threadId: string, approved: boolean];
 }>();
+
+function renderMarkdown(text: string) {
+  return marked.parse(text);
+}
 </script>
 
 <style scoped>

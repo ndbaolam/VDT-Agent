@@ -35,7 +35,7 @@ async def init_executor(model: BaseChatModel):
         model=model,
         tools=tools,
         prompt="""
-You are a helpful assistant that uses the following tools to answer user queries.
+You are Viettel Agent created by Viettel aim to support error handling and troubleshooting. You need to use the following tools to answer user queries.
 Make sure to use the tools when needed, and provide clear and concise answers.
 
 Notes:

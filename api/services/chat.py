@@ -27,7 +27,7 @@ class AgentService:
             self.graph = await build_graph()
             logger.info("Agent graph initialized successfully")
     
-    async def chat(self, request: ChatRequest) -> Tuple[ChatResponse, Optional[str]]:
+    async def chat(self, request: ChatRequest) -> ChatResponse:
         """Process a chat request and return response"""
         thread_id = request.thread_id or str(uuid.uuid4())
         
@@ -43,7 +43,6 @@ class AgentService:
         }
         
         response_content = ""
-        interrupt_id = None
         
         try:
             async for chunk in self.graph.astream(
@@ -61,17 +60,28 @@ class AgentService:
                             "config": config
                         }
                         self.active_threads[thread_id]["status"] = "interrupted"
-                        break
+                        
+                        # Return interrupt information to frontend
+                        return ChatResponse(
+                            response="",
+                            thread_id=thread_id,
+                            interrupt_id=interrupt_id,
+                            interrupt_description=interrupt.value.get("description", "Action requires approval"),
+                            interrupt_action=interrupt.value.get("action_request", {}),
+                            requires_approval=True
+                        )
                 else:
                     for node_name, node_data in chunk.items():
                         if "messages" in node_data:
                             if hasattr(node_data['messages'], 'content'):
                                 response_content += node_data['messages'].content
             
-            if not interrupt_id:
-                self.active_threads[thread_id]["status"] = "completed"
-            
-            return ChatResponse(response=response_content, thread_id=thread_id), interrupt_id
+            self.active_threads[thread_id]["status"] = "completed"
+            return ChatResponse(
+                response=response_content, 
+                thread_id=thread_id,
+                requires_approval=False
+            )
             
         except Exception as e:
             self.active_threads[thread_id]["status"] = "error"
@@ -109,7 +119,17 @@ class AgentService:
                             "config": config
                         }
                         self.active_threads[thread_id]["status"] = "interrupted"
-                        yield f"data: {{'type': 'interrupt', 'interrupt_id': '{interrupt_id}', 'description': '{interrupt.value.get('description')}'}}\n\n"
+                        
+                        # Send interrupt information as SSE
+                        interrupt_data = {
+                            "type": "interrupt",
+                            "interrupt_id": interrupt_id,
+                            "thread_id": thread_id,
+                            "description": interrupt.value.get("description", "Action requires approval"),
+                            "action_request": interrupt.value.get("action_request", {}),
+                            "requires_approval": True
+                        }
+                        yield f"data: {interrupt_data}\n\n"
                         break
                 else:
                     for node_name, node_data in chunk.items():
@@ -127,8 +147,8 @@ class AgentService:
             logger.error(f"Error in streaming: {str(e)}")
             yield f'data: {{"type": "error", "error": "{str(e)}"}}\n\n'
     
-    async def resolve_interrupt(self, interrupt_id: str, resolution: str, thread_id: str) -> str:
-        """Resolve a pending interrupt"""
+    async def resolve_interrupt(self, interrupt_id: str, approved: bool, thread_id: str) -> str:
+        """Resolve a pending interrupt with user approval"""
         if interrupt_id not in self.pending_interrupts:
             raise ValueError("Interrupt not found")
         
@@ -139,6 +159,9 @@ class AgentService:
         
         try:
             self.active_threads[thread_id]["status"] = "resolving"
+            
+            # Resume with user's decision
+            resolution = "y" if approved else "n"
             
             async for message_chunk, metadata in self.graph.astream(
                 Command(resume={"type": resolution}),

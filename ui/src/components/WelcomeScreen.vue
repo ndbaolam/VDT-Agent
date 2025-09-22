@@ -7,7 +7,7 @@
       </svg>
     </div>
     <h1 class="text-4xl font-bold bg-gradient-to-r from-gray-800 via-blue-600 to-purple-600 bg-clip-text text-transparent mb-3">
-      AI Chat Assistant
+      VTNet Chat Assistant
     </h1>
     <p class="text-gray-500 text-lg max-w-md mx-auto leading-relaxed">
       Your intelligent conversation partner. Ask me anything and let's start chatting!

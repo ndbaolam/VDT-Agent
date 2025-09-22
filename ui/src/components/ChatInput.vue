@@ -4,8 +4,9 @@
     <div class="max-w-4xl mx-auto">
       <form
         @submit.prevent="$emit('send-message')"
-        class="relative flex items-end gap-4 bg-white rounded-3xl shadow-lg shadow-gray-200/60 p-2 border border-gray-200/80 hover:shadow-xl transition-all duration-300"
+        class="relative flex items-end gap-2 bg-white rounded-3xl shadow-lg shadow-gray-200/60 p-2 border border-gray-200/80 hover:shadow-xl transition-all duration-300"
       >
+        <!-- Textarea -->
         <textarea
           :value="input"
           @input="updateInput"
@@ -15,13 +16,37 @@
           rows="1"
           ref="textareaRef"
         ></textarea>
-        
-        <!-- Send Button -->
-        <SendButton :is-loading="isLoading" :disabled="!input.trim() || isLoading" />
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-2 pr-1 pb-1">
+          <!-- Upload Button -->
+          <label
+            class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition cursor-pointer shadow"
+          >
+            <input
+              type="file"
+              accept=".txt"
+              class="hidden"
+              @change="handleFileUpload"
+            />
+            📎
+          </label>
+
+          <!-- Send Button -->
+          <SendButton :is-loading="isLoading" :disabled="!input.trim() || isLoading" />
+        </div>
       </form>
-      
+
       <!-- Status Indicator -->
       <StatusIndicator :is-loading="isLoading" />
+
+      <!-- Custom Alert -->
+      <AlertBox
+        v-if="alertMessage"
+        :message="alertMessage"
+        :duration="3000"
+        @close="alertMessage = ''"
+      />
     </div>
   </div>
 </template>
@@ -30,6 +55,7 @@
 import { ref, onMounted, watch, defineProps, defineEmits } from "vue";
 import SendButton from "@/components/SendButton.vue";
 import StatusIndicator from "@/components/StatusIndicator.vue";
+import AlertBox from "@/components/AlertBox.vue";
 
 const props = defineProps<{
   input: string;
@@ -37,29 +63,50 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  'update:input': [value: string];
-  'send-message': [];
+  "update:input": [value: string];
+  "send-message": [];
 }>();
 
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
+const alertMessage = ref("");
 
 function updateInput(event: Event) {
   const target = event.target as HTMLTextAreaElement;
-  emit('update:input', target.value);
+  emit("update:input", target.value);
 }
 
 function resizeTextarea() {
   if (textareaRef.value) {
     textareaRef.value.style.height = "auto";
-    textareaRef.value.style.height = `${Math.min(textareaRef.value.scrollHeight, 160)}px`;
+    textareaRef.value.style.height = `${Math.min(
+      textareaRef.value.scrollHeight,
+      160
+    )}px`;
   }
 }
 
 function handleKeyDown(e: KeyboardEvent) {
   if (e.key === "Enter" && !e.shiftKey && !props.isLoading) {
     e.preventDefault();
-    emit('send-message');
+    emit("send-message");
   }
+}
+
+function handleFileUpload(event: Event) {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
+
+  if (file.type !== "text/plain") {
+    alertMessage.value = "❌ Only .txt files are supported.";
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    emit("update:input", reader.result as string);
+  };
+  reader.readAsText(file);
 }
 
 onMounted(() => {
@@ -70,10 +117,3 @@ watch(() => props.input, () => {
   resizeTextarea();
 });
 </script>
-
-<style scoped>
-textarea {
-  min-height: 1.5rem;
-  max-height: 10rem;
-}
-</style>

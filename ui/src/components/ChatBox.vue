@@ -5,7 +5,8 @@
     <ChatMessages 
       :messages="messages" 
       :is-loading="isLoading" 
-      @render-markdown="renderMarkdown" 
+      @render-markdown="renderMarkdown"
+      @approve-interrupt="handleInterruptApproval"
     />
     
     <!-- Input Area -->
@@ -29,8 +30,17 @@ import ChatMessages from "./ChatMessages.vue";
 import ChatInput from "./ChatInput.vue";
 
 const input = ref("");
-const messages = ref<Array<{ role: string; content: string }>>([]);
+const messages = ref<Array<{ 
+  role: string; 
+  content: string; 
+  interrupt_id?: string;
+  interrupt_description?: string;
+  interrupt_action?: any;
+  requires_approval?: boolean;
+  thread_id?: string;
+}>>([]);
 const isLoading = ref(false);
+const currentThreadId = ref<string | null>(null);
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 
 // Initialize markdown-it
@@ -66,12 +76,33 @@ async function sendMessage() {
   isLoading.value = true;
   
   try {
-    const res = await axios.post(`${API_BASE_URL}/chat`, { message: userMsg });
-    const data = res.data;
-    messages.value.push({
-      role: "bot",
-      content: data.response || "No response received.",
+    const res = await axios.post(`${API_BASE_URL}/chat`, { 
+      message: userMsg,
+      thread_id: currentThreadId.value 
     });
+    const data = res.data;
+    
+    // Update current thread ID
+    currentThreadId.value = data.thread_id;
+    
+    if (data.requires_approval) {
+      // Handle interrupt - show approval message
+      messages.value.push({
+        role: "bot",
+        content: data.interrupt_description || "Action requires approval",
+        interrupt_id: data.interrupt_id,
+        interrupt_description: data.interrupt_description,
+        interrupt_action: data.interrupt_action,
+        requires_approval: true,
+        thread_id: data.thread_id
+      });
+    } else {
+      // Normal response
+      messages.value.push({
+        role: "bot",
+        content: data.response || "No response received.",
+      });
+    }
   } catch (e: any) {
     messages.value.push({
       role: "bot",
@@ -79,6 +110,34 @@ async function sendMessage() {
     });
   } finally {
     // Clear loading state
+    isLoading.value = false;
+  }
+}
+
+async function handleInterruptApproval(interruptId: string, threadId: string, approved: boolean) {
+  isLoading.value = true;
+  
+  try {
+    const res = await axios.post(`${API_BASE_URL}/interrupt/approve`, {
+      interrupt_id: interruptId,
+      thread_id: threadId,
+      approved: approved
+    });
+    
+    const data = res.data;
+    
+    // Add the resolution response
+    messages.value.push({
+      role: "bot",
+      content: data.response || (approved ? "Action approved and completed." : "Action denied."),
+    });
+    
+  } catch (e: any) {
+    messages.value.push({
+      role: "bot",
+      content: "Error resolving interrupt: " + (e?.response?.data?.detail || e.message),
+    });
+  } finally {
     isLoading.value = false;
   }
 }
