@@ -4,7 +4,7 @@ from loguru import logger
 class Config:
     # API Configuration
     API_HOST = "0.0.0.0"
-    API_PORT = 8000
+    API_PORT = 3000
     API_RELOAD = True
     LOG_LEVEL = "info"
     

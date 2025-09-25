@@ -73,8 +73,8 @@ class AgentService:
                 else:
                     for node_name, node_data in chunk.items():
                         if "messages" in node_data:
-                            if hasattr(node_data['messages'], 'content'):
-                                response_content += node_data['messages'].content
+                            # if hasattr(node_data['messages'], 'content'):
+                                response_content += node_data['messages'][-1].content
             
             self.active_threads[thread_id]["status"] = "completed"
             return ChatResponse(

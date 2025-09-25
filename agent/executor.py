@@ -4,30 +4,41 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from loguru import logger
 from langgraph.prebuilt import create_react_agent
 from langchain_core.language_models import BaseChatModel
-from langgraph.checkpoint.memory import InMemorySaver
-from tools import init_tools
+from langchain_mcp_adapters.client import MultiServerMCPClient
+from tools.interruptor import add_human_in_the_loop
+from typing import List
+from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# ---- Logging config ----
-LOG_DIR = os.path.join(os.path.dirname(__file__), "..", "logs")
-os.makedirs(LOG_DIR, exist_ok=True)
+MCP_URL = os.getenv("MCP_HOST", "http://localhost:8000/mcp")
 
-LOG_FILE = os.path.join(LOG_DIR, "all.log")
-
-logger.remove() 
-logger.add(
-    LOG_FILE,
-    rotation="10 MB",   
-    retention="10 days", 
-    compression="zip",   
-    enqueue=True,
-    backtrace=True,
-    diagnose=True,
-)
+class ExecutorResponse(BaseModel):
+    answer: str = Field(..., description="The final answer provided by the agent.")
+    thought_process: List[str] = Field(..., description="List of thoughts and actions taken by the agent.")
 
 # ---- Executor ----
+async def init_tools():
+    client = MultiServerMCPClient(
+            {
+                "system-metrics-mcp": {
+                    "url": MCP_URL,
+                    "transport": "streamable_http",
+                }
+            }
+        )
+
+    tools = await client.get_tools()    
+
+    execute_command_tool = next(t for t in tools if t.name == "execute_command")
+    other_tools = [t for t in tools if t.name != "execute_command"]
+
+    wrapped_execute_command = add_human_in_the_loop(execute_command_tool)
+
+    return [wrapped_execute_command, *other_tools]
+
+
 async def init_executor(model: BaseChatModel):        
     tools = await init_tools()
     
@@ -40,7 +51,9 @@ Make sure to use the tools when needed, and provide clear and concise answers.
 
 Notes:
 **MCP** stands for **Model Context Protocol**
-        """,
+""",
+        response_format=ExecutorResponse,
+        name="executor",
     )
 
     logger.info(f"Executor initialized with model={model.get_name()}")
@@ -62,7 +75,6 @@ if __name__ == "__main__":
             ]
         })
 
-        print(response['messages'][-1].content)
-
+        print(response["structured_response"])
     
     asyncio.run(main())

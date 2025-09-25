@@ -10,18 +10,7 @@ load_dotenv()
 MCP_URL = os.getenv("MCP_HOST", "http://localhost:8000/mcp")
 
 async def init_tools():
-    try: 
-        client = MultiServerMCPClient(
-            {
-                "system-metrics-mcp": {
-                    "command": "python",
-                    "args": ["tools/mcp_server.py"],
-                    "transport": "stdio",
-                }
-            }
-        )
-    except:
-        client = MultiServerMCPClient(
+    client = MultiServerMCPClient(
             {
                 "system-metrics-mcp": {
                     "url": MCP_URL,

@@ -199,4 +199,4 @@ async def execute_command(command: str, cwd: Optional[str] = None, timeoutSec: i
         return [TextContent(type="text", text=f"[exec] Error: {e}")]
 
 if __name__ == "__main__":
-    mcp.run()
+    mcp.run(transport="streamable-http")
